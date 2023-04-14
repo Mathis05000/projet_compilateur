@@ -1,15 +1,18 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-#include "table.h"
 
 int yylex (void);
 void yyerror (const char *);
 
-int profondeur = 0;
-Pile * pile;
 
 %}
+
+%union
+{
+    int intValue;
+    char * stringValue;
+}
 
 
 %token tMAIN tCONST tIF tELSE tWHILE tPRINTF tRETURN tINT tVOID tID tNB tOP tLOPERATOR tASSIGN tLBRACE tRBRACE tLPAR tRPAR tSEMI tCOMMA
@@ -49,7 +52,7 @@ ContentDeclaration :
 ContentInstruction :
     /* eps */
     | Affect tSEMI ContentInstruction             {printf("Content AFFECT\n")}
-    | tPRINTF tLPAR Val tRPAR tSEMI ContentInstruction {printf("%d\n", $3)}
+    | tPRINTF tLPAR Val tRPAR tSEMI ContentInstruction {printf("%d\n", $<intValue>3)}
     | tWHILE tLPAR LVal tRPAR tLBRACE Content tRBRACE ContentInstruction{printf("Content While\n")}
     | tIF tLPAR LVal tRPAR tLBRACE Content tRBRACE ContentInstruction{printf("Content IF\n")}
     | tIF tLPAR LVal tRPAR tLBRACE Content tRBRACE tELSE tLBRACE Content tRBRACE ContentInstruction{printf("Content IF ELSE\n")}
@@ -61,19 +64,10 @@ Affect :
 
 InitialisationInt :
     tID   {
-        int * addr = malloc(sizeof(int));
-        struct Elem * elem;
-        elem = malloc(sizeof(struct Elem));
-        elem->label = $1;
-        elem->address = addr;
-        elem->profondeur = profondeur;
-        
-        push(pile, elem);
-
-        printf("!!!!! tID : %d", $1);
+        printf("!!!!!tID : %s", $<stringValue>1);
     }
     | tID tASSIGN Val   {printf("Initialisation\n")}
-    | Initialisation tCOMMA Initialisation {printf("Initialisation\n")}
+    | InitialisationInt tCOMMA InitialisationInt {printf("Initialisation\n")}
     ;
 
 InitialisationConst :
@@ -84,7 +78,7 @@ InitialisationConst :
 Val : 
     tID {printf("Val 1  \n")}
     | tNB {printf("Val 2 \n")}
-    | Val tOPERATOR Val { printf("$1\n")}
+    | Val tOP Val { printf("$1\n")}
     | tID tLPAR Parametre tRPAR {printf("Val 4\n")}
     | tID tLPAR tRPAR {printf("Val 4\n")}
     ;

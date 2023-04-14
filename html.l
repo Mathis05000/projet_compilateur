@@ -6,6 +6,7 @@
 #include "html.tab.h"
 %}
 
+
 IDENTIFIERS  [a-zA-Z]([a-zA-Z0-9]|_)*
 INTEGERS      0x[0-9a-f]*|[0-9]+|[0-9]+e[0-9]+
 COMMENT      "//".*\n|"/*"(.|\n)*"*/"
@@ -59,12 +60,12 @@ ENDLINE      [ ]*\n
               }
 
 {IDENTIFIERS} {
-                yylval = yytext;
+                yylval.stringValue = strdup(yytext);
                 return(tID);
               }
 
 {INTEGERS}    {
-                yylval = atoi(yytext);
+                yylval.intValue = atoi(yytext);
                 return(tNB);
               }
 

@@ -5,7 +5,9 @@
 typedef struct Elem* Pile;
 
 void push(Pile * pile, struct Elem * elem) {
-    elem->suiv = *pile;
+    if (pile != NULL) {
+        elem->suiv = *pile;
+    }
     *pile = elem;
 }
 
