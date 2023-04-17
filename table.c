@@ -4,41 +4,60 @@
 
 typedef struct Elem* Pile;
 
-void push(Pile * pile, struct Elem * elem) {
+void push(char * label, enum Type type) {
+    struct Elem * elem;
+    elem = malloc(sizeof(struct Elem));
+    elem->label = label;
+    elem->address = getNewAddress(type);
+    elem->profondeur = profondeur;
+    elem->type = type;
+
     if (pile != NULL) {
-        elem->suiv = *pile;
+        elem->suiv = pile;
     }
-    *pile = elem;
+    pile = elem;
 }
 
-void pop(Pile * pile) {
-    *pile = (*pile)->suiv;
+void pop(int profondeur) {
+    int run = 1;
+    while(pile != NULL && pile->profondeur >= profondeur) {
+        pile = pile->suiv;
+    }
 }
+
+// take address and increment 
+
+int getNewAddress(enum Type type) {
+    int addr = address;
+
+    if (type == type_const_int || type == type_int) {
+        address += 4;
+    }
+
+    return addr;
+}
+
+int getAddressByLabel(char * label) {
+    struct Elem * tmp = pile;
+    while(tmp != NULL) {
+        if (strcmp(tmp->label, label)) {
+            return tmp->address;
+        }
+    }
+
+    return -1;
+}
+
+
 
 // test pile
 
-int main() {
-    struct Elem * elem1;
+/*int main() {
+    push("toto", type_int);
+    profondeur++;
+    push("tata", type_int);
+    push("titi", type_int);
+    pop(0);
 
-    elem1 = malloc(sizeof(struct Elem));
-    elem1->label = "toto";
-    elem1->profondeur = 1;
-
-    Pile * pile = &elem1;
-
-    printf("pile : %s\n", (*pile)->label);
-
-    struct Elem * elem2;
-
-    elem2 = malloc(sizeof(struct Elem));
-    elem2->label = "tata";
-    elem2->profondeur = 2;
-
-    push(pile, elem2);
-
-    printf("pile : %s\n", (*pile)->label);
-
-    pop(pile);
-
-    printf("pile : %s\n", (*pile)->label);
-}
+    //printf("pile : %s", pile->label);
+}*/

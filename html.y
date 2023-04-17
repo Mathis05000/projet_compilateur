@@ -1,6 +1,8 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "table.c"
+
 
 int yylex (void);
 void yyerror (const char *);
@@ -27,12 +29,12 @@ Input :
     ;
 
 Function : 
-    tVOID Declaration tLBRACE Content tRBRACE {printf("Function\n")}
-    | tINT Declaration tLBRACE Content Return tSEMI tRBRACE {printf("Function\n")}
+    tVOID Declaration tLBRACE Content tRBRACE
+    | tINT Declaration tLBRACE Content Return tSEMI tRBRACE
     ;
 
 Declaration : 
-    tID tLPAR Arg tRPAR {printf("déclaration\n")}
+    tID tLPAR Arg tRPAR 
 
 Arg :
     tVOID {printf("Arg\n")}
@@ -64,9 +66,12 @@ Affect :
 
 InitialisationInt :
     tID   {
-        printf("!!!!!tID : %s", $<stringValue>1);
+        push($<stringValue>1, type_int);
     }
-    | tID tASSIGN Val   {printf("Initialisation\n")}
+    | tID tASSIGN Val   {
+        push($<stringValue>1, type_int);
+        printf("AFC %s %d ", $<stringValue>1, $<intValue>3);
+    }
     | InitialisationInt tCOMMA InitialisationInt {printf("Initialisation\n")}
     ;
 
