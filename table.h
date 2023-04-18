@@ -20,8 +20,13 @@ void pop(int profondeur);
 
 int getAddress(enum Type type);
 
+int getNewAddress(enum Type type);
+
+int getAddressByLabel(char * label);
+
 Pile pile;
 
 int profondeur = 0;
 
 int address = 0;
+

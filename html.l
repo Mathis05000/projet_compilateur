@@ -70,18 +70,22 @@ ENDLINE      [ ]*\n
               }
 
 "+"           {
+                yylval.intValue = 1;
                 return(tOP);
               }
 
 "-"           {
+                yylval.intValue = 3;
                 return(tOP);
               }
 
 "*"           {
+                yylval.intValue = 2;
                 return(tOP);
               }
 
 "/"           {
+                yylval.intValue = 4;
                 return(tOP);
               }
 

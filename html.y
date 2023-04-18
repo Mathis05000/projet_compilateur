@@ -7,7 +7,6 @@
 int yylex (void);
 void yyerror (const char *);
 
-
 %}
 
 %union
@@ -37,9 +36,10 @@ Declaration :
     tID tLPAR Arg tRPAR 
 
 Arg :
-    tVOID {printf("Arg\n")}
-    | tINT tID {printf("Arg\n")}
-    | tINT tID tCOMMA Arg {printf("Arg\n")}
+    /* eps */
+    | tVOID
+    | tINT tID 
+    | tINT tID tCOMMA Arg
     ;
 
 Content :
@@ -47,21 +47,23 @@ Content :
 
 ContentDeclaration :
     /* eps */
-    | tCONST tINT InitialisationConst tSEMI Content {printf("Content INIT\n")}
-    | tINT InitialisationInt tSEMI Content {printf("Content INIT\n")}
+    | tCONST tINT InitialisationConst tSEMI Content 
+    | tINT InitialisationInt tSEMI Content 
     ;  
 
 ContentInstruction :
     /* eps */
-    | Affect tSEMI ContentInstruction             {printf("Content AFFECT\n")}
-    | tPRINTF tLPAR Val tRPAR tSEMI ContentInstruction {printf("%d\n", $<intValue>3)}
-    | tWHILE tLPAR LVal tRPAR tLBRACE Content tRBRACE ContentInstruction{printf("Content While\n")}
-    | tIF tLPAR LVal tRPAR tLBRACE Content tRBRACE ContentInstruction{printf("Content IF\n")}
-    | tIF tLPAR LVal tRPAR tLBRACE Content tRBRACE tELSE tLBRACE Content tRBRACE ContentInstruction{printf("Content IF ELSE\n")}
+    | Affect tSEMI ContentInstruction           
+    | tPRINTF tLPAR Val tRPAR tSEMI ContentInstruction 
+    | tWHILE tLPAR LVal tRPAR tLBRACE Content tRBRACE ContentInstruction
+    | tIF tLPAR LVal tRPAR tLBRACE Content tRBRACE ContentInstruction
+    | tIF tLPAR LVal tRPAR tLBRACE Content tRBRACE tELSE tLBRACE Content tRBRACE ContentInstruction
     ;
 
 Affect :
-    tID tASSIGN Val  {printf("tID tASSIGN \n")}
+    tID tASSIGN Val {
+        printf("COP %s %s", $<stringValue>1, )
+    }
     ;
 
 InitialisationInt :
@@ -70,38 +72,68 @@ InitialisationInt :
     }
     | tID tASSIGN Val   {
         push($<stringValue>1, type_int);
-        printf("AFC %s %d ", $<stringValue>1, $<intValue>3);
+        printf("AFC %s %d\n", $<stringValue>1, $<intValue>3);
     }
-    | InitialisationInt tCOMMA InitialisationInt {printf("Initialisation\n")}
+    | InitialisationInt tCOMMA InitialisationInt
     ;
 
 InitialisationConst :
-    | tID tASSIGN Val   {printf("tID tASSIGN Val\n")}
-    | InitialisationConst tCOMMA InitialisationConst {printf("Initialisation\n")}
+    | tID tASSIGN Val   {
+        push($<stringValue>1, type_const_int);
+        printf("AFC %s %d ", $<stringValue>1, $<intValue>3);
+    }
+    | InitialisationConst tCOMMA InitialisationConst
     ;
 
 Val : 
-    tID {printf("Val 1  \n")}
-    | tNB {printf("Val 2 \n")}
-    | Val tOP Val { printf("$1\n")}
-    | tID tLPAR Parametre tRPAR {printf("Val 4\n")}
-    | tID tLPAR tRPAR {printf("Val 4\n")}
+    tID {
+        char * tmp = strcat("tmp", $<stringValue>1);
+        push(tmp, type_int);
+        printf("COP %d %d", getAddressByLabel(tmp), getAddressByLabel($<stringValue>1));
+        $$ = tmp;
+        }
+    | tNB {
+        //char * tmp = strcat("tmp", $<stringValue>1);
+        push("tmp2", type_int);
+        printf("AFC %d %d", getAddressByLabel("tmp2"), $<intValue>1)
+        $$ = "tmp2";
+        }
+    | Val tOP Val {
+        // +
+        if ($<intValue>2 == 1) {
+            printf("ADD %d %d %d", getAddressByLabel($<stringValue>1), getAddressByLabel($<stringValue>1), getAddressByLabel($<stringValue>1))
+        }
+        // *
+        if ($<intValue>2 == 2) {
+            
+        }
+        // -
+        if ($<intValue>2 == 3) {
+            
+        }
+        // /
+        if ($<intValue>2 == 4) {
+            
+        }
+    }
+    | tID tLPAR Parametre tRPAR 
+    | tID tLPAR tRPAR 
     ;
 
 LVal :
-    Val {printf("LVal\n")}
-    | Val tLOPERATOR Val {printf("LVal\n")}
-    | LVal tLOPERATOR LVal {printf("LVal\n")}
+    Val 
+    | Val tLOPERATOR Val 
+    | LVal tLOPERATOR LVal 
     ;
 
 Parametre :
-    Val  {printf("Parametre Val\n")} 
-    | Val tCOMMA Parametre {printf("Parametre\n")} 
+    Val 
+    | Val tCOMMA Parametre 
     ;
 
 Return :
-    tRETURN tLPAR Val tRPAR  {printf("Return\n")}
-    | tRETURN Val {printf("Return\n")}
+    tRETURN tLPAR Val tRPAR  
+    | tRETURN Val 
     ;
 %%
 
@@ -112,5 +144,8 @@ void yyerror(const char *msg) {
 
 int main(void) {
   yyparse();
+  push("r1", type_int);
+  push("r2", type_int);
+  push("r3", type_int);
 }
 

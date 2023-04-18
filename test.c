@@ -1,4 +1,3 @@
-int compute(int a, int d) {
-  int b = 11;
+int compute() {
   return 0;
 }
