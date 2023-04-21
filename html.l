@@ -86,27 +86,27 @@ ENDLINE      [ ]*\n
               }
 
 "<"           {
-                return(tLOPERATOR);
+                return(tINF);
               }
 
 ">"           {
-                return(tLOPERATOR);
+                return(tSUP);
               }
 
 "!="          {
-                return(tLOPERATOR);
+                return(tNEQU);
               }
 
 "=="          {
-                return(tLOPERATOR);
+                return(tEQU);
               }
 
 ">="          {
-                return(tLOPERATOR);
+                return(tSUPEQU);
               }
 
 "<="          {
-                return(tLOPERATOR);
+                return(tINFEQU);
               }
 
 "="           {

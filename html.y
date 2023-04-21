@@ -16,7 +16,7 @@ void yyerror (const char *);
 }
 
 
-%token tMAIN tCONST tIF tELSE tWHILE tPRINTF tRETURN tINT tVOID tID tNB tADD tSUB tMUL tDIV tLOPERATOR tASSIGN tLBRACE tRBRACE tLPAR tRPAR tSEMI tCOMMA
+%token tMAIN tCONST tIF tELSE tWHILE tPRINTF tRETURN tINT tVOID tID tNB tADD tSUB tMUL tDIV tSUP tINF tEQU tNEQU tSUPEQU tINFEQU tLOPERATOR tASSIGN tLBRACE tRBRACE tLPAR tRPAR tSEMI tCOMMA
 
 %left tADD tSUB
 %left tMUL tDIV
@@ -51,8 +51,8 @@ Content :
 
 ContentDeclaration :
     /* eps */
-    | tCONST tINT InitialisationConst tSEMI Content 
-    | tINT InitialisationInt tSEMI Content 
+    | tCONST tINT InitialisationConst tSEMI ContentDeclaration
+    | tINT InitialisationInt tSEMI ContentDeclaration
     ;  
 
 ContentInstruction :
@@ -61,12 +61,17 @@ ContentInstruction :
     | tPRINTF tLPAR Val tRPAR tSEMI ContentInstruction 
     | tWHILE tLPAR LVal tRPAR tLBRACE Content tRBRACE ContentInstruction
     | tIF tLPAR LVal tRPAR tLBRACE Content tRBRACE ContentInstruction
-    | tIF tLPAR LVal tRPAR tLBRACE Content tRBRACE tELSE tLBRACE Content tRBRACE ContentInstruction
+    | tIF tLPAR LVal tRPAR {
+
+    }
+        tLBRACE Content tRBRACE tELSE tLBRACE Content tRBRACE ContentInstruction
     ;
 
 Affect :
     tID tASSIGN Val {
-        printf("COP %d %d\n", getAddressByLabel($<stringValue>1), popTmp());
+        char * instruction;
+        sprintf(instruction, "COP %d %d\n", getAddressByLabel($<stringValue>1), popTmp());
+        pushInstruction(instruction);
         printPile();
     }
     ;
@@ -78,7 +83,9 @@ InitialisationInt :
     | tID tASSIGN Val   {
         int tmp = popTmp();
         push($<stringValue>1, type_int);
-        printf("COP %d %d\n", getAddressByLabel($<stringValue>1), tmp);
+        char * instruction;
+        sprintf(instruction, "COP %d %d\n", getAddressByLabel($<stringValue>1), tmp);
+        pushInstruction(instruction);
     }
     | InitialisationInt tCOMMA InitialisationInt
     ;
@@ -87,7 +94,9 @@ InitialisationConst :
     | tID tASSIGN Val   {
         int tmp = popTmp();
         push($<stringValue>1, type_const_int);
-        printf("COP %d %d ", getAddressByLabel($<stringValue>1), tmp);
+        char * instruction;
+        sprintf(instruction, "COP %d %d ", getAddressByLabel($<stringValue>1), tmp);
+        pushInstruction(instruction);
     }
     | InitialisationConst tCOMMA InitialisationConst
     ;
@@ -96,45 +105,64 @@ Val :
     tID {
         printf("%s\n", $<stringValue>1);
         pushTmp();
-        printf("COP %d %d\n", getAddressTopPile(), getAddressByLabel($<stringValue>1));
+        char * instruction;
+        sprintf(instruction, "COP %d %d\n", getAddressTopPile(), getAddressByLabel($<stringValue>1));
+        pushInstruction(instruction);
         }
     | tNB {
         printf("%d\n", $<intValue>1);
         pushTmp();
-        printf("AFC %d %d\n", getAddressTopPile(), $<intValue>1);
+        char * instruction;
+        sprintf(instruction, "AFC %d %d\n", getAddressTopPile(), $<intValue>1);
+        pushInstruction(instruction);
         }
     | Val tADD Val {
         // +
+            int tmp = popTmp();
             printf("%d + %d\n", $<intValue>1, $<intValue>3);
-            printf("ADD %d %d %d\n", getAddressByLabel("tmp1"), getAddressByLabel("tmp1"), getAddressByLabel("tmp2"));
-            popTmp();
+            char * instruction;
+            sprintf(instruction, "ADD %d %d %d\n", getAddressTopPile(), getAddressTopPile(), tmp);
+            pushInstruction(instruction);
         }
     | Val tMUL Val {
         // *
+            int tmp = popTmp();
             printf("%d * %d\n", $<intValue>1, $<intValue>3);
-            printf("MUL %d %d %d\n", getAddressByLabel("tmp1"), getAddressByLabel("tmp1"), getAddressByLabel("tmp2"));
-            popTmp();
+            char * instruction;
+            sprintf(instruction, "MUL %d %d %d\n", getAddressTopPile(), getAddressTopPile(), tmp);
+            pushInstruction(instruction);
         }
     | Val tSUB Val {
         // -
+            int tmp = popTmp();
             printf("%d - %d\n", $<intValue>1, $<intValue>3);
-            printf("SUB %d %d %d\n", getAddressByLabel("tmp1"), getAddressByLabel("tmp1"), getAddressByLabel("tmp2"));
-            popTmp();
+            char * instruction;
+            sprintf(instruction, "SUB %d %d %d\n", getAddressTopPile(), getAddressTopPile(), tmp);
+            pushInstruction(instruction);
         }
     | Val tDIV Val {
         // /
+            int tmp = popTmp();
             printf("%d / %d\n", $<intValue>1, $<intValue>3);
-            printf("DIV %d %d %d\n", getAddressByLabel("tmp1"), getAddressByLabel("tmp1"), getAddressByLabel("tmp2"));
-            popTmp();
+            char * instruction;
+            sprintf(instruction, "DIV %d %d %d\n", getAddressTopPile(), getAddressTopPile(), tmp);
+            pushInstruction(instruction);
         }
     | tID tLPAR Parametre tRPAR 
     | tID tLPAR tRPAR 
     ;
 
 LVal :
-    Val 
-    | Val tLOPERATOR Val 
-    | LVal tLOPERATOR LVal 
+    | Val tEQU Val {
+        printf("%d == %d\n", $<intValue>1, $<intValue>3);
+        int tpm1 = popTmp();
+        int tmp2 = popTmp();
+        pushTmp();
+        char * instruction;
+        sprintf(instruction, "EQU %d %d %d\n", getAddressTopPile(), tpm1, tmp2);
+        pushInstruction(instruction);
+        printInstruction();
+    }
     ;
 
 Parametre :

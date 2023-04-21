@@ -83,6 +83,19 @@ void pushTmp() {
     nbTmp++;    
 }
 
+char * instruction[100];
+int indexInst = 0;
+
+void pushInstruction(char * i) {
+    instruction[indexInst++] = i;
+}
+
+void printInstruction() {
+    for(int i = 0; i < indexInst; i++) {
+        printf("%d %s\n", i, instruction[indexInst]);
+    }
+}
+
 // test pile
 
 /*int main() {
