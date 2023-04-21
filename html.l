@@ -70,23 +70,19 @@ ENDLINE      [ ]*\n
               }
 
 "+"           {
-                yylval.intValue = 1;
-                return(tOP);
+                return(tADD);
               }
 
 "-"           {
-                yylval.intValue = 3;
-                return(tOP);
+                return(tSUB);
               }
 
 "*"           {
-                yylval.intValue = 2;
-                return(tOP);
+                return(tMUL);
               }
 
 "/"           {
-                yylval.intValue = 4;
-                return(tOP);
+                return(tDIV);
               }
 
 "<"           {

@@ -1,3 +1,3 @@
-int compute() {
-  return 0;
+void compute() {
+  int a = 1 + 2 / 4 - 6;
 }

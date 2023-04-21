@@ -16,7 +16,11 @@ void yyerror (const char *);
 }
 
 
-%token tMAIN tCONST tIF tELSE tWHILE tPRINTF tRETURN tINT tVOID tID tNB tOP tLOPERATOR tASSIGN tLBRACE tRBRACE tLPAR tRPAR tSEMI tCOMMA
+%token tMAIN tCONST tIF tELSE tWHILE tPRINTF tRETURN tINT tVOID tID tNB tADD tSUB tMUL tDIV tLOPERATOR tASSIGN tLBRACE tRBRACE tLPAR tRPAR tSEMI tCOMMA
+
+%left tADD tSUB
+%left tMUL tDIV
+%left tASSIGN
 
 %start Input
 
@@ -62,7 +66,8 @@ ContentInstruction :
 
 Affect :
     tID tASSIGN Val {
-        printf("COP %s %s", $<stringValue>1, )
+        printf("COP %d %d\n", getAddressByLabel($<stringValue>1), popTmp());
+        printPile();
     }
     ;
 
@@ -71,51 +76,57 @@ InitialisationInt :
         push($<stringValue>1, type_int);
     }
     | tID tASSIGN Val   {
+        int tmp = popTmp();
         push($<stringValue>1, type_int);
-        printf("AFC %s %d\n", $<stringValue>1, $<intValue>3);
+        printf("COP %d %d\n", getAddressByLabel($<stringValue>1), tmp);
     }
     | InitialisationInt tCOMMA InitialisationInt
     ;
 
 InitialisationConst :
     | tID tASSIGN Val   {
+        int tmp = popTmp();
         push($<stringValue>1, type_const_int);
-        printf("AFC %s %d ", $<stringValue>1, $<intValue>3);
+        printf("COP %d %d ", getAddressByLabel($<stringValue>1), tmp);
     }
     | InitialisationConst tCOMMA InitialisationConst
     ;
 
 Val : 
     tID {
-        char * tmp = strcat("tmp", $<stringValue>1);
-        push(tmp, type_int);
-        printf("COP %d %d", getAddressByLabel(tmp), getAddressByLabel($<stringValue>1));
-        $$ = tmp;
+        printf("%s\n", $<stringValue>1);
+        pushTmp();
+        printf("COP %d %d\n", getAddressTopPile(), getAddressByLabel($<stringValue>1));
         }
     | tNB {
-        //char * tmp = strcat("tmp", $<stringValue>1);
-        push("tmp2", type_int);
-        printf("AFC %d %d", getAddressByLabel("tmp2"), $<intValue>1)
-        $$ = "tmp2";
+        printf("%d\n", $<intValue>1);
+        pushTmp();
+        printf("AFC %d %d\n", getAddressTopPile(), $<intValue>1);
         }
-    | Val tOP Val {
+    | Val tADD Val {
         // +
-        if ($<intValue>2 == 1) {
-            printf("ADD %d %d %d", getAddressByLabel($<stringValue>1), getAddressByLabel($<stringValue>1), getAddressByLabel($<stringValue>1))
+            printf("%d + %d\n", $<intValue>1, $<intValue>3);
+            printf("ADD %d %d %d\n", getAddressByLabel("tmp1"), getAddressByLabel("tmp1"), getAddressByLabel("tmp2"));
+            popTmp();
         }
+    | Val tMUL Val {
         // *
-        if ($<intValue>2 == 2) {
-            
+            printf("%d * %d\n", $<intValue>1, $<intValue>3);
+            printf("MUL %d %d %d\n", getAddressByLabel("tmp1"), getAddressByLabel("tmp1"), getAddressByLabel("tmp2"));
+            popTmp();
         }
+    | Val tSUB Val {
         // -
-        if ($<intValue>2 == 3) {
-            
+            printf("%d - %d\n", $<intValue>1, $<intValue>3);
+            printf("SUB %d %d %d\n", getAddressByLabel("tmp1"), getAddressByLabel("tmp1"), getAddressByLabel("tmp2"));
+            popTmp();
         }
+    | Val tDIV Val {
         // /
-        if ($<intValue>2 == 4) {
-            
+            printf("%d / %d\n", $<intValue>1, $<intValue>3);
+            printf("DIV %d %d %d\n", getAddressByLabel("tmp1"), getAddressByLabel("tmp1"), getAddressByLabel("tmp2"));
+            popTmp();
         }
-    }
     | tID tLPAR Parametre tRPAR 
     | tID tLPAR tRPAR 
     ;
@@ -144,8 +155,5 @@ void yyerror(const char *msg) {
 
 int main(void) {
   yyparse();
-  push("r1", type_int);
-  push("r2", type_int);
-  push("r3", type_int);
 }
 
