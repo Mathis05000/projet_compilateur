@@ -3,7 +3,7 @@
 #include <string.h>
 #include "table.h"
 
-typedef struct Elem* Pile;
+void printInstruction();
 
 void printPile() {
     printf("####### Pile #######\n");
@@ -83,27 +83,55 @@ void pushTmp() {
     nbTmp++;    
 }
 
+// gestion if else
 char * instruction[100];
 int indexInst = 0;
 
+int tabAddrIf[100];
+int indexIf = 0;
+
 void pushInstruction(char * i) {
-    instruction[indexInst++] = i;
+    instruction[indexInst] = malloc(sizeof(char)*50);
+    strcpy(instruction[indexInst++], i);
+    printf("%s\n", i);
 }
 
-void printInstruction() {
-    for(int i = 0; i < indexInst; i++) {
-        printf("%d %s\n", i, instruction[indexInst]);
+void pushIf(int addr) {
+    tabAddrIf[indexIf++] = addr;
+}
+
+void modifInstruction() {
+    char * tmp = instruction[tabAddrIf[--indexIf]];
+    for (int i = 0; i < strlen(tmp); i++) {
+        if (tmp[i] == '?') {
+            char buf[4];
+            sprintf(buf, "%d", indexInst);
+            for (int j = 0; j < strlen(buf); j++) {
+                tmp[i+j] = buf[j];
+            }
+        }
+    }
+    printInstruction();
+}
+
+void modifInstructionElse() {
+    char * tmp = instruction[tabAddrIf[--indexIf]];
+    for (int i = 0; i < strlen(tmp); i++) {
+        if (tmp[i] == '?') {
+            char buf[4];
+            sprintf(buf, "%d", indexInst + 1);
+            for (int j = 0; j < strlen(buf); j++) {
+                tmp[i+j] = buf[j];
+            }
+        }
     }
 }
 
-// test pile
 
-/*int main() {
-    push("toto", type_int);
-    profondeur++;
-    push("tata", type_int);
-    push("titi", type_int);
-    pop(0);
-
-    //printf("pile : %s", pile->label);
-}*/
+void printInstruction() {
+    printf("##### instruction #####\n");
+    for(int i = 0; i < indexInst; i++) {
+        printf("%d %s\n", i, instruction[i]);
+    }
+    printf("#####  #####\n");
+}

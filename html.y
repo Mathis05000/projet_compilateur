@@ -17,7 +17,7 @@ void yyerror (const char *);
 
 
 %token tMAIN tCONST tIF tELSE tWHILE tPRINTF tRETURN tINT tVOID tID tNB tADD tSUB tMUL tDIV tSUP tINF tEQU tNEQU tSUPEQU tINFEQU tLOPERATOR tASSIGN tLBRACE tRBRACE tLPAR tRPAR tSEMI tCOMMA
-
+%left tCOMMA
 %left tADD tSUB
 %left tMUL tDIV
 %left tASSIGN
@@ -46,8 +46,7 @@ Arg :
     | tINT tID tCOMMA Arg
     ;
 
-Content :
-    | ContentDeclaration ContentInstruction
+Content : ContentDeclaration ContentInstruction
 
 ContentDeclaration :
     /* eps */
@@ -60,41 +59,60 @@ ContentInstruction :
     | Affect tSEMI ContentInstruction           
     | tPRINTF tLPAR Val tRPAR tSEMI ContentInstruction 
     | tWHILE tLPAR LVal tRPAR tLBRACE Content tRBRACE ContentInstruction
-    | tIF tLPAR LVal tRPAR tLBRACE Content tRBRACE ContentInstruction
-    | tIF tLPAR LVal tRPAR {
-
-    }
-        tLBRACE Content tRBRACE tELSE tLBRACE Content tRBRACE ContentInstruction
+    | tIF tLPAR LVal tRPAR aPJMP tLBRACE Content tRBRACE aMJMP ContentInstruction
+    | tIF tLPAR LVal tRPAR aPJMP tLBRACE Content tRBRACE tELSE aJMPE tLBRACE Content tRBRACE aMJMP ContentInstruction
     ;
+aPJMP:
+    {
+        char instruction[100];
+        sprintf(instruction, "JMF %d ?\n", popTmp());
+        pushIf(indexInst);
+        pushInstruction(instruction);
+        
+    } 
+
+aMJMP:
+    {
+        modifInstruction();
+    }
+
+aJMPE:
+    {
+        modifInstructionElse();
+        char instruction[100];
+        sprintf(instruction, "JMP ?\n");
+        pushIf(indexInst);
+        pushInstruction(instruction);
+    }
 
 Affect :
     tID tASSIGN Val {
-        char * instruction;
+        char instruction[100];
         sprintf(instruction, "COP %d %d\n", getAddressByLabel($<stringValue>1), popTmp());
         pushInstruction(instruction);
         printPile();
     }
     ;
 
-InitialisationInt :
+InitialisationInt : 
     tID   {
         push($<stringValue>1, type_int);
     }
     | tID tASSIGN Val   {
         int tmp = popTmp();
         push($<stringValue>1, type_int);
-        char * instruction;
+        char instruction[100];
         sprintf(instruction, "COP %d %d\n", getAddressByLabel($<stringValue>1), tmp);
         pushInstruction(instruction);
     }
     | InitialisationInt tCOMMA InitialisationInt
     ;
 
-InitialisationConst :
-    | tID tASSIGN Val   {
+InitialisationConst : 
+    tID tASSIGN Val   {
         int tmp = popTmp();
         push($<stringValue>1, type_const_int);
-        char * instruction;
+        char instruction[100];
         sprintf(instruction, "COP %d %d ", getAddressByLabel($<stringValue>1), tmp);
         pushInstruction(instruction);
     }
@@ -105,14 +123,14 @@ Val :
     tID {
         printf("%s\n", $<stringValue>1);
         pushTmp();
-        char * instruction;
+        char instruction[100];
         sprintf(instruction, "COP %d %d\n", getAddressTopPile(), getAddressByLabel($<stringValue>1));
         pushInstruction(instruction);
         }
     | tNB {
         printf("%d\n", $<intValue>1);
         pushTmp();
-        char * instruction;
+        char instruction[100];
         sprintf(instruction, "AFC %d %d\n", getAddressTopPile(), $<intValue>1);
         pushInstruction(instruction);
         }
@@ -120,7 +138,7 @@ Val :
         // +
             int tmp = popTmp();
             printf("%d + %d\n", $<intValue>1, $<intValue>3);
-            char * instruction;
+            char instruction[100];
             sprintf(instruction, "ADD %d %d %d\n", getAddressTopPile(), getAddressTopPile(), tmp);
             pushInstruction(instruction);
         }
@@ -128,7 +146,7 @@ Val :
         // *
             int tmp = popTmp();
             printf("%d * %d\n", $<intValue>1, $<intValue>3);
-            char * instruction;
+            char instruction[100];
             sprintf(instruction, "MUL %d %d %d\n", getAddressTopPile(), getAddressTopPile(), tmp);
             pushInstruction(instruction);
         }
@@ -136,7 +154,7 @@ Val :
         // -
             int tmp = popTmp();
             printf("%d - %d\n", $<intValue>1, $<intValue>3);
-            char * instruction;
+            char instruction[100];
             sprintf(instruction, "SUB %d %d %d\n", getAddressTopPile(), getAddressTopPile(), tmp);
             pushInstruction(instruction);
         }
@@ -144,7 +162,7 @@ Val :
         // /
             int tmp = popTmp();
             printf("%d / %d\n", $<intValue>1, $<intValue>3);
-            char * instruction;
+            char instruction[100];
             sprintf(instruction, "DIV %d %d %d\n", getAddressTopPile(), getAddressTopPile(), tmp);
             pushInstruction(instruction);
         }
@@ -158,10 +176,9 @@ LVal :
         int tpm1 = popTmp();
         int tmp2 = popTmp();
         pushTmp();
-        char * instruction;
+        char instruction[100];
         sprintf(instruction, "EQU %d %d %d\n", getAddressTopPile(), tpm1, tmp2);
         pushInstruction(instruction);
-        printInstruction();
     }
     ;
 
