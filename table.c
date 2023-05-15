@@ -108,6 +108,7 @@ void modifInstruction() {
             sprintf(buf, "%d", indexInst);
             for (int j = 0; j < strlen(buf); j++) {
                 tmp[i+j] = buf[j];
+                tmp[i+j+1] = '\n';
             }
         }
     }
@@ -122,6 +123,7 @@ void modifInstructionElse() {
             sprintf(buf, "%d", indexInst + 1);
             for (int j = 0; j < strlen(buf); j++) {
                 tmp[i+j] = buf[j];
+                tmp[i+j+1] = '\n';
             }
         }
     }

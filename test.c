@@ -1,12 +1,6 @@
 void compute() {
-  
-  if (1 == 2) {
-    int a = 1;
-  } else {
-    if(3 == 3) {
-      int b = 5;
-    } else {
-      int c = 20;
-    }
-  }
+  int a = 2;
+  int b = 4;
+  printf(a + b);
+  printf(a);
 }
