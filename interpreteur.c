@@ -197,7 +197,7 @@ int main()
             // JMF
             if (instructions[i][0] == '8')
             {
-                if (var[atoi(tmp[1])] == 1)
+                if (var[atoi(tmp[1])] == 0)
                 {
                     i = atoi(tmp[2]) - 1;
                 }

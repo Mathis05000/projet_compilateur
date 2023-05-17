@@ -1,6 +1,11 @@
 void compute() {
   int a = 2;
-  int b = 4;
-  printf(a + b);
-  printf(a);
+  if (a == 1) {
+    a = 2;
+    printf(a);
+  } else {
+    int b = 10;
+    printf(b + 1);
+  }
+  
 }
