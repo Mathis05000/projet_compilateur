@@ -44,12 +44,21 @@ Input :
     ;
 
 Function : 
-    tVOID Declaration tLBRACE Content tRBRACE
-    | tINT Declaration tLBRACE Content Return tSEMI tRBRACE
+    AddProfondeur tVOID Declaration tLBRACE Content tRBRACE Pop End
+    | AddProfondeur tINT Declaration tLBRACE Content Return tSEMI tRBRACE Pop End
     ;
 
+End:
+    {
+        char instruction[100];
+        sprintf(instruction, "E\n");
+        pushInstruction(instruction);
+    }
+
 Declaration : 
-    tID tLPAR Arg tRPAR 
+    tID {
+        pushFunction($<stringValue>1);
+    } tLPAR Arg tRPAR 
 
 Arg :
     /* eps */
@@ -68,16 +77,36 @@ ContentDeclaration :
 
 ContentInstruction :
     /* eps */
+    | CallFunction tSEMI ContentInstruction 
     | Affect tSEMI ContentInstruction           
     | tPRINTF tLPAR Val tRPAR tSEMI ContentInstruction {
         char instruction[100];
         sprintf(instruction, "C %d\n", popTmp());
         pushInstruction(instruction);
     }
-    | tWHILE tLPAR LVal tRPAR tLBRACE Content tRBRACE ContentInstruction
-    | tIF tLPAR LVal tRPAR aPJMP tLBRACE Content tRBRACE aMJMP ContentInstruction
-    | tIF tLPAR LVal tRPAR aPJMP tLBRACE Content tRBRACE tELSE aJMPE tLBRACE Content tRBRACE aMJMP ContentInstruction
+    | tWHILE tLPAR LVal tRPAR AddProfondeur tLBRACE Content tRBRACE Pop ContentInstruction
+    | tIF tLPAR LVal tRPAR aPJMP AddProfondeur tLBRACE Content tRBRACE Pop aMJMP ContentInstruction
+    | tIF tLPAR LVal tRPAR aPJMP AddProfondeur tLBRACE Content tRBRACE Pop tELSE aJMPE AddProfondeur tLBRACE Content tRBRACE Pop aMJMP ContentInstruction
     ;
+
+CallFunction:
+    tID tLPAR tRPAR {
+        char instruction[100];
+        sprintf(instruction, "D %d\n", indexInst + 1);
+        pushInstruction(instruction);
+        sprintf(instruction, "7 %d\n", findFunction($<stringValue>1));
+        pushInstruction(instruction);
+    }
+    ;
+AddProfondeur:
+    {
+        profondeur++;
+    }
+
+Pop:
+    {
+        pop();
+    }
 aPJMP:
     {
         char instruction[100];

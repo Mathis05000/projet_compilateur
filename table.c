@@ -5,25 +5,29 @@
 
 void printInstruction();
 
-void printPile() {
+void printPile()
+{
     printf("####### Pile #######\n");
-    struct Elem * tmp = pile;
-    while(tmp != NULL) {
+    struct Elem *tmp = pile;
+    while (tmp != NULL)
+    {
         printf("%s : %d\n", tmp->label, tmp->address);
         tmp = tmp->suiv;
-    } 
+    }
 
     printf("#######     #######\n");
 }
-void push(char * label, enum Type type) {
-    struct Elem * elem;
+void push(char *label, enum Type type)
+{
+    struct Elem *elem;
     elem = malloc(sizeof(struct Elem));
     elem->label = label;
     elem->address = getNewAddress(type);
     elem->profondeur = profondeur;
     elem->type = type;
 
-    if (pile != NULL) {
+    if (pile != NULL)
+    {
         elem->suiv = pile;
     }
     pile = elem;
@@ -31,109 +35,181 @@ void push(char * label, enum Type type) {
     printPile();
 }
 
-void pop(int profondeur) {
+void pop()
+{
     int run = 1;
-    while(pile != NULL && pile->profondeur >= profondeur) {
+    while (pile != NULL && pile->profondeur >= profondeur)
+    {
         printf("loop\n");
         pile = pile->suiv;
     }
+    profondeur--;
 }
 
-int popTmp() {
+int popTmp()
+{
     int tmp = pile->address;
-    if (nbTmp > 0) {
+    if (nbTmp > 0)
+    {
         pile = pile->suiv;
         nbTmp--;
     }
     return tmp;
 }
 
+// take address and increment
 
-
-// take address and increment 
-
-int getNewAddress(enum Type type) {
+int getNewAddress(enum Type type)
+{
     int addr = address;
 
-    if (type == type_const_int || type == type_int) {
+    if (type == type_const_int || type == type_int)
+    {
         address += 4;
     }
 
     return addr;
 }
 
-int getAddressByLabel(char * label) {
-    struct Elem * tmp = pile;
-    while(tmp != NULL) {
-        if (!strcmp(tmp->label, label)) {
+int getAddressByLabel(char *label)
+{
+    struct Elem *tmp = pile;
+    while (tmp != NULL)
+    {
+        if (!strcmp(tmp->label, label))
+        {
             return tmp->address;
         }
         tmp = tmp->suiv;
     }
 
-    return -1;
+    printf("error instruction assembleur ligne : %d\n", indexInst);
+    perror("variable inconnu");
+    exit(1);
 }
 
-int getAddressTopPile() {
+int getAddressTopPile()
+{
     return pile->address;
 }
 
-void pushTmp() {
+void pushTmp()
+{
     push("tmp", type_int);
-    nbTmp++;    
+    nbTmp++;
 }
 
-// gestion if else
-char * instruction[100];
-int indexInst = 0;
-
-int tabAddrIf[100];
-int indexIf = 0;
-
-void pushInstruction(char * i) {
-    instruction[indexInst] = malloc(sizeof(char)*50);
+void pushInstruction(char *i)
+{
+    instruction[indexInst] = malloc(sizeof(char) * 50);
     strcpy(instruction[indexInst++], i);
     printf("%s\n", i);
 }
 
-void pushIf(int addr) {
+void pushIf(int addr)
+{
     tabAddrIf[indexIf++] = addr;
 }
 
-void modifInstruction() {
-    char * tmp = instruction[tabAddrIf[--indexIf]];
-    for (int i = 0; i < strlen(tmp); i++) {
-        if (tmp[i] == '?') {
+void modifInstruction()
+{
+    char *tmp = instruction[tabAddrIf[--indexIf]];
+    for (int i = 0; i < strlen(tmp); i++)
+    {
+        if (tmp[i] == '?')
+        {
             char buf[4];
             sprintf(buf, "%d", indexInst);
-            for (int j = 0; j < strlen(buf); j++) {
-                tmp[i+j] = buf[j];
-                tmp[i+j+1] = '\n';
+            for (int j = 0; j < strlen(buf); j++)
+            {
+                tmp[i + j] = buf[j];
+                tmp[i + j + 1] = '\n';
             }
         }
     }
     printInstruction();
 }
 
-void modifInstructionElse() {
-    char * tmp = instruction[tabAddrIf[--indexIf]];
-    for (int i = 0; i < strlen(tmp); i++) {
-        if (tmp[i] == '?') {
+void modifInstructionElse()
+{
+    char *tmp = instruction[tabAddrIf[--indexIf]];
+    for (int i = 0; i < strlen(tmp); i++)
+    {
+        if (tmp[i] == '?')
+        {
             char buf[4];
             sprintf(buf, "%d", indexInst + 1);
-            for (int j = 0; j < strlen(buf); j++) {
-                tmp[i+j] = buf[j];
-                tmp[i+j+1] = '\n';
+            for (int j = 0; j < strlen(buf); j++)
+            {
+                tmp[i + j] = buf[j];
+                tmp[i + j + 1] = '\n';
             }
         }
     }
 }
 
-
-void printInstruction() {
+void printInstruction()
+{
     printf("##### instruction #####\n");
-    for(int i = 0; i < indexInst; i++) {
+    for (int i = 0; i < indexInst; i++)
+    {
         printf("%d %s\n", i, instruction[i]);
     }
     printf("#####  #####\n");
 }
+
+void pushFunction(char * name) {
+    struct Function * function;
+    function = malloc(sizeof(struct Function));
+    function->line = indexInst;
+    function->name = name;
+    if (pileFunction != NULL) {
+        function->suiv = pileFunction;
+    }
+    pileFunction = function;   
+}
+
+int findFunction(char * name) {
+    struct Function *tmp = pileFunction;
+    while (tmp != NULL)
+    {
+        if (!strcmp(tmp->name, name))
+        {
+            return tmp->line;
+        }
+        tmp = tmp->suiv;
+    }
+
+    printf("error instruction assembleur ligne : %d\n", indexInst);
+    perror("variable inconnu");
+    exit(1);
+}
+
+
+/*// gestion des fonction
+
+void pushPile(Pile tmpPile)
+{
+    if (globalPile == NULL)
+    {
+        struct ElemPile *elemPile;
+        elemPile = malloc(sizeof(struct ElemPile));
+        elemPile->pile = pile;
+        elemPile->suiv = NULL;
+        globalPile = elemPile;
+    }
+    struct ElemPile *elemPile;
+    elemPile = malloc(sizeof(struct ElemPile));
+    elemPile->pile = tmpPile;
+    elemPile->suiv = globalPile;
+
+    globalPile = elemPile;
+    pile = tmpPile;
+}
+
+void popPile()
+{
+    globalPile = globalPile->suiv;
+    pile = globalPile->pile;
+}*/
+

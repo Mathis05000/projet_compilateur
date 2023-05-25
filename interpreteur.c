@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define SIZE_PILE 250
+#define SIZE_MEM 250
+
+
 void getInstructions(char ***tab, int *nbInstructions)
 {
     FILE *fichier = fopen("assembleur.txt", "r");
@@ -94,16 +98,35 @@ void splitInstructions(char **tabIn, char ****tabOut, int nbInstructions)
     *tabOut = rslt;
 }
 
+
+// Pile
+
+void * pile[SIZE_PILE];
+int var[SIZE_MEM];
+
+int bp = 0;
+int sp = 0;
+
+int lr;
+
+void push(int addr) {
+    sp++;
+    pile[sp] = addr;
+}
+
 int main()
 {
     char **instructions;
     int nbInstruction;
     getInstructions(&instructions, &nbInstruction);
 
-    int var[1000];
+    
+
+    
 
     for (int i = 0; i < nbInstruction; i++)
     {
+       //printf("%d\n", i);
         char **tmp;
         split(instructions[i], " ", &tmp);
         // ADD
@@ -187,13 +210,27 @@ int main()
             printf("%d\n", var[atoi(tmp[1])]);
         }
 
+        
+
+        // save retour function
+        if (instructions[i][0] == 'D')
+        {
+            lr = atoi(tmp[1]);
+            printf("lr : %d\n", lr);
+        }
+
+        // retour function
+        if (instructions[i][0] == 'E')
+        {
+            i = lr;
+            printf("i : %d\n", i);
+        }
+
         // JMP
         if (instructions[i][0] == '7')
         {
             i = atoi(tmp[1]) - 1;
-        }
-        else
-        {
+        } else {
             // JMF
             if (instructions[i][0] == '8')
             {
